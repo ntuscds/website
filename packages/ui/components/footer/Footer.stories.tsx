@@ -20,7 +20,7 @@ Basic.args = {
   socialLinks: [
     { name: "Instagram", icon: FaInstagram, href: "https://www.instagram.com/ntuscseclub/" },
     { name: "LinkedIn", icon: FaLinkedin, href: "https://sg.linkedin.com/company/ntu-scseclub" },
-    { name: "GitHub", icon: FaGithub, href: "https://github.com/ntuscse" },
+    { name: "GitHub", icon: FaGithub, href: "https://github.com/ntuscds" },
   ],
   studentLinksGroup: {
     header: "For Students",

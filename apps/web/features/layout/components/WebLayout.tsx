@@ -38,7 +38,7 @@ export const WebLayout = ({ children }: WebLayoutProps) => {
         icon: FaLinkedin,
         href: "https://www.linkedin.com/company/ntu-scdsc/mycompany/",
       },
-      { name: "GitHub", icon: FaGithub, href: "https://github.com/ntuscse" },
+      { name: "GitHub", icon: FaGithub, href: "https://github.com/ntuscds" },
     ],
     studentLinksGroup: {
       header: "For Students",

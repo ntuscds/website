@@ -34,8 +34,8 @@ export const Faq = ({ heading, qnaList }: FaqProps) => {
           justifyItems="flex-start"
           templateColumns={{ base: "repeat(1, 1fr)", md: "repeat(2, 1fr)" }}
         >
-          {qnaList.map((qna) => (
-            <GridItem>
+          {qnaList.map((qna,idx) => (
+            <GridItem key={idx}>
               <Qna question={qna.question} answer={qna.answer} />
             </GridItem>
           ))}

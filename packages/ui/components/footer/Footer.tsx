@@ -72,7 +72,7 @@ export const Footer = (props: FooterProps) => {
                   fontWeight="semibold"
                   _hover={{ color: "brand.red.medium" }}
                 >
-                   Students' Computing and Data Science Club
+                   Students&apos; Computing and Data Science Club
                 </Text>
               </Stack>
             </Link>
