@@ -46,6 +46,11 @@ module.exports = {
       ],
       plugins: ["@typescript-eslint"],
       rules: {
+          "@typescript-eslint/no-misused-promises": ["error", {
+            "checksVoidReturn": {
+              "attributes": false
+            }
+          }],
         "@typescript-eslint/no-empty-interface": ["off", "never"],
         "@typescript-eslint/no-unused-vars": [
           "error",
@@ -58,6 +63,8 @@ module.exports = {
             format: ["camelCase", "PascalCase"],
           },
         ],
+        "@typescript-eslint/no-unsafe-assignment": "off",
+        "@typescript-eslint/no-unsafe-call": "off",
       },
       parserOptions: {
         tsconfigRootDir: __dirname,

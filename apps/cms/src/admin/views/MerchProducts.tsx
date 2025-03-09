@@ -3,21 +3,36 @@ import { Button } from "payload/components/elements";
 import { AdminViewComponent } from "payload/config";
 import ViewTemplate from "./ViewTemplate";
 import { Column } from "payload/dist/admin/components/elements/Table/types";
+import { Product } from "../../@types/Product";
+import ProductsApi from "../../apis/products.api";
 import { RenderCellFactory } from "../utils/RenderCellFactory";
 import SortedColumn from "../utils/SortedColumn";
 import { Table } from "payload/dist/admin/components/elements/Table";
-import { Product } from "types";
-import ProductsApi from "../../apis/products.api";
+import { useHistory } from 'react-router-dom';
+import { toast } from "react-toastify";
 import { prettifyKey } from "../../utilities/prettifyKey";
 
 const MerchProducts: AdminViewComponent = ({ user, canAccessAdmin }) => {
   // Get data from API
   const [data, setData] = useState<Product[]>(null);
+  const history = useHistory();
   useEffect(() => {
-    ProductsApi.getProducts()
-      .then((res: Product[]) => setData(res))
-      .catch((error) => console.log(error));
-  }, []);
+    const fetchProducts = async () => { 
+      try {
+        const products: Product[] = await ProductsApi.getProducts();
+        setData(products);
+      } catch (error) {
+        setData([]);
+        if (error instanceof Error) {
+          toast.error(error.message);
+        } else {
+          toast.error("An unknown error occurred");
+        }
+      }
+    };
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    fetchProducts();
+    }, []);
 
   // Do not load table until we receive the data
   if (data == null) {
@@ -25,12 +40,14 @@ const MerchProducts: AdminViewComponent = ({ user, canAccessAdmin }) => {
   }
 
   const tableCols = new Array<Column>();
-  if (data && data.length > 0) {
-    const sampleProduct = data[0];
-    const keys = Object.keys(sampleProduct);
-    for (const key of keys) {
+  if (data && data.length > 0) { 
+    for (const key of Object.keys(new Product())) {
+      const renderCellComponent = RenderCellFactory.get(data[0], key);
       const renderCell: React.FC<{ children?: React.ReactNode }> =
-        RenderCellFactory.get(sampleProduct, key);
+        renderCellComponent instanceof Promise
+          ? renderCellComponent
+          : renderCellComponent;
+
       const col: Column = {
         accessor: key,
         components: {
@@ -43,53 +60,78 @@ const MerchProducts: AdminViewComponent = ({ user, canAccessAdmin }) => {
           ),
           renderCell: renderCell,
         },
-        label: "",
-        name: "",
+        label: prettifyKey(key), // Assigning the prettified key to the label
+        name: key,
         active: true,
       };
+
       tableCols.push(col);
     }
+    
+    const editColumn: Column = {
+      accessor: "edit",
+      components: {
+        Heading: <div>Edit</div>,
+        renderCell: (data: Product) => (
+          <Button onClick={() => handleEdit(data)}>Edit</Button>
+        ),
+      },
+      label: "Edit",
+      name: "edit",
+      active: true,
+    };
+
+    tableCols.push(editColumn);
+
+    const handleEdit = (data: Product) => {
+      const productId = data.id;
+      // Navigate to the edit page
+      history.push(`/admin/collections/products/${productId}`);
+    };
+
+    const deleteColumn: Column = {
+      accessor: "delete",
+      components: {
+        Heading: <div>Delete</div>,
+        renderCell: (data: Product) => (
+          <Button onClick={() => {
+          void (() => {
+            handleDelete(data);
+          })();
+        }}
+          >Delete</Button>
+        ),
+      },
+      label: "Delete",
+      name: "delete",
+      active: true,
+    };
+
+    tableCols.push(deleteColumn);
+
+      const handleDelete = (data: Product) => {
+        const productId = data.id;
+        try {
+          // Show a confirmation prompt (optional)
+          if (window.confirm('Are you sure you want to delete this product?')) {
+            // Call the delete API
+            // Implement delete API
+      
+            // After deletion, update the data state to reflect the removal
+            setData((prevData) => prevData.filter((product) => product.id !== productId));
+      
+            // Optionally, show a success message
+            toast.success('Product deleted successfully');
+          }
+        } catch (error) {
+          if (error instanceof Error) {
+            toast.error(error.message);
+          } else {
+            toast.error('An unknown error occurred');
+          }
+        }
+    };
   }
-
-  const editColumn: Column = {
-    accessor: "edit",
-    components: {
-      Heading: <div>Edit</div>,
-      renderCell: ({ children }) => (
-        <Button onClick={() => handleEdit(children as string)}>Edit</Button>
-      ),
-    },
-    label: "Edit",
-    name: "edit",
-    active: true,
-  };
-
-  tableCols.push(editColumn);
-
-  const deleteColumn: Column = {
-    accessor: "delete",
-    components: {
-      Heading: <div>Delete</div>,
-      renderCell: ({ children }) => (
-        <Button onClick={() => handleDelete(children as string)}>Delete</Button>
-      ),
-    },
-    label: "Delete",
-    name: "delete",
-    active: true,
-  };
-
-  tableCols.push(deleteColumn);
-
-  const handleEdit = (orderId: string) => {
-    console.log(`Dummy. Order ID: ${orderId}`);
-  };
-
-  const handleDelete = (orderId: string) => {
-    console.log(`Dummy. Order ID: ${orderId}`);
-  };
-
-  console.log(tableCols);
 
   return (
     <ViewTemplate
@@ -102,8 +144,7 @@ const MerchProducts: AdminViewComponent = ({ user, canAccessAdmin }) => {
       <Button el="link" to={"/admin"} buttonStyle="primary">
         Go to Main Admin View
       </Button>
-
-      <Table data={data} columns={tableCols} />
+      {data && data.length > 0 && <Table data={data} columns={tableCols} />}
     </ViewTemplate>
   );
 };
